@@ -1,8 +1,19 @@
 # H2Oh-no — garden irrigation controller (ESPHome)
 
-**ESPHome** firmware for an irrigation controller built around **BK7231N** (e.g. Tuya CBU module / `generic-bk7231n-qfn32-tuya`). Device name in config: **h2oh_no**, friendly name: **H2Oh-no**.
+**ESPHome** replacement firmware for the **Tuya / Smart Life Wi‑Fi 8‑zone irrigation controller** sold with a **24 V power supply**. The intended hardware matches listings such as [Digital Life — Smart Life Tuya WIFI 8 Zone Irrigation Controller Switch w/ 24V Power Supply](https://dlifesa.com/products/smart-life-tuya-wifi-8-zone-irrigation-controller-switch-w-24v-power-supply). Inside the enclosure you get a **BK7231N** module; this repo builds with **`bk72xx`** / **`generic-bk7231n-qfn32-tuya`**. Device name in config: **h2oh_no**, friendly name: **H2Oh-no**.
 
 Firmware sources live under **`src/`** (YAML + custom component); repo root keeps **secrets** (`secrets.yaml`), docs, git metadata, and flash backups.
+
+## Target hardware
+
+| | |
+|---|---|
+| **Product** | Tuya / Smart Life **8‑zone** irrigation controller + **24 V** PSU bundle (panel with **Up / Down / OK**, buzzer, zone LEDs, **8** valve outputs). |
+| **Retail example** | [dlifesa.com — 8 zone + 24 V supply](https://dlifesa.com/products/smart-life-tuya-wifi-8-zone-irrigation-controller-switch-w-24v-power-supply) |
+| **MCU / ESPHome** | **BK7231N** (`generic-bk7231n-qfn32-tuya`) |
+| **Vendor specs (listing)** | Wi‑Fi **2.4 GHz** (802.11 b/g/n); **230 V AC** supply input; **24 V AC** output to controller and valves; enclosure about **211 × 139 × 20 mm**. |
+
+The same supplier range includes **4 / 6 / 16** zone models — **different PCBs**. This firmware is **only** aligned with the **8‑zone** unit unless you re‑verify GPIO.
 
 ## What it does
 
@@ -55,7 +66,9 @@ python3 -m esphome upload src/h2oh_no.yaml    # with device / network available
 
 The **“H2Oh-no diagnostics”** text sensor (about every 5 s) prints valve mask, service flag, multi-valve flag, and panel selection index — handy when debugging from HA.
 
-## Hardware (GPIO from `src/h2oh_no.yaml`)
+## Hardware pinout (GPIO from `src/h2oh_no.yaml`)
+
+Maps for the **8‑zone** controller above — treat YAML as source of truth.
 
 - Valve 595: data **P16**, clock **P22**, latch **P20**
 - LED 595: data **P9**, clock **P15**, latch **P17** — status LEDs use **`inverted: true`** on each output so power-on zero state does not light every LED (common active-low LED wiring to the shift register).
