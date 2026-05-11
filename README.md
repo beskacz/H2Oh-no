@@ -17,21 +17,48 @@ Firmware sources live under **`src/`** (YAML + custom component); repo root keep
 
 ![Smart Life / Tuya Wi‑Fi 8-zone irrigation controller — product overview](docs/images/controller-product-overview.png)
 
-*Graphic from the [Digital Life listing](https://dlifesa.com/products/smart-life-tuya-wifi-8-zone-irrigation-controller-switch-w-24v-power-supply) ([CDN image](https://dlifesa.com/cdn/shop/files/1_df0c56a6-245c-430b-a8bf-2f137dcb482e.png?v=1733925064&width=1646)).*
+*Graphic from the [Digital Life listing](https://dlifesa.com/products/smart-life-tuya-wifi-8-zone-irrigation-controller-switch-w-24v-power-supply).*
 
 ![Front panel — status icons, zones 1–8, five-button pad (directions + center OK)](docs/images/controller-front-panel.png)
 
 The same supplier range includes **4 / 6 / 16** zone models — **different PCBs**. This firmware is **only** aligned with the **8‑zone** unit unless you re‑verify GPIO.
 
-## What it does
+## Using the controller (after flashing)
 
-- Drives **8 valves** via a **74HC595** shift register (`valves_hub`).
-- Drives **8 status LEDs** on a second 595 chain (`leds_hub`).
-- Panel **OK**: short tap toggles selected valve; **hold ~2–4.5 s and release** triggers **Emergency STOP**; **hold ≥ 5 s** toggles **service mode** (with buzzer/LED cue on enter). **Up/Down/OK** restart a **30 s** idle timer: if **no panel button** is pressed for 30 s, the controller **leaves manual selection** (`sel=-1` in diagnostics). The next **Up** selects **valve 1** (without skipping it); the next **Down** selects **valve 8**. **Emergency stop** clears valves and sets selection back to valve 1.
-- **Up/Down** also runs a **3-pulse** highlight on the newly selected LED: each pulse briefly **inverts** vs that valve’s real on/off state (dim-if-on / bright-if-off), then all LEDs are restored from the valve mask so active zones stay correctly lit.
-- **Service mode**: onboard **status LED (P28)** uses a **triple short flash + long pause** pattern (easy to tell apart from ESPHome **error** / **warning** blinks). When not in service mode, that pin mirrors the stock ESPHome **status LED** patterns (error / warning), same timing as the built-in component used before.
-- **Home Assistant** integration (API), **OTA**, fallback **Wi‑Fi AP** + captive portal.
-- Valve logic, watchdogs, and service mode live in a **custom C++ component** (`h2oh_no_controller`); YAML keeps Wi‑Fi, HA entities, and buzzer scripts.
+When the unit is on your **2.4 GHz Wi‑Fi** and **Home Assistant** has discovered it (ESPHome), you run **eight zones** from the **phone/computer** or from the **buttons on the case**.
+
+### Front panel
+
+1. **Pick a zone** with **Up** and **Down**. The **1–8** lights show which zones are **on**; when you move to another zone, its light **blinks a few times** so you see what you selected.
+2. **Quick press the middle button (OK)** — **starts or stops** watering on that zone.
+3. **Hold OK ~2–4 seconds, then release** — **everything stops** (all zones off) and the buzzer plays an **alarm-style** pattern.
+4. **Hold OK ~5 seconds** — turns **service mode** on or off (beeps / LEDs when you **enter**). In service mode the controller **won’t leave valves open**, even if something in Home Assistant asks — handy while you work on wiring or valves.
+
+If you **don’t press anything for 30 seconds**, the panel **forgets** which zone you had highlighted. After that, **Up** starts again from **zone 1**, and **Down** from **zone 8**.
+
+### Small status LED (on the board)
+
+- In **service mode** it does a **three quick flashes, then a long pause** — on purpose, so you don’t mix it up with a normal “fault” blink.
+- The rest of the time it behaves like a normal **ESPHome status LED** (e.g. warning/error patterns if the firmware needs to tell you something).
+
+### In Home Assistant
+
+You get **a switch per zone**, **how long each zone may run** before it turns off by itself, a toggle for **one zone only vs several at once**, an **Emergency STOP** control, and optional **diagnostics** text if you want to watch live state.
+
+### Wi‑Fi problems
+
+If home Wi‑Fi fails, ESPHome can open a **fallback hotspot** and **captive portal** so you can fix the password — same flow as other ESPHome devices.
+
+## Behaviour & limits (detail)
+
+These rules sit behind the scenes; you mostly notice them as “zone turned off by itself” or “only one zone stayed on”.
+
+- **Per-zone timer:** Each open zone uses its **Valve N max runtime** from Home Assistant. When time is up, **only that zone** turns off. You can usually set **about 10 seconds up to one hour** per zone from HA unless defaults were changed in YAML.
+- **Service mode:** Any attempt to open a valve (panel or HA) is **undone immediately** — all valves stay closed.
+- **Allow multiple valves** (HA): When **off**, only **one** zone may run; if several were on, **the lowest-number zone stays** and the others close.
+- **Power-on:** Valves start **closed**; **no** startup beep. Intentional **Emergency STOP** still uses the **alarm** beeps.
+
+The **“H2Oh-no diagnostics”** text sensor refreshes about every **5 seconds** with a short status line (which zones are on, service mode, multi-zone setting, panel selection) — useful when debugging from HA.
 
 ## Repository layout
 
@@ -65,15 +92,6 @@ Run commands from the **repository root** (or pass absolute paths):
 python3 -m esphome compile src/h2oh_no.yaml
 python3 -m esphome upload src/h2oh_no.yaml    # with device / network available
 ```
-
-## Behaviour (short)
-
-- **Watchdog**: one timer **per open valve** — when its limit expires (number entity “Valve N max runtime”), it closes **only that** valve. `NaN` / missing state defaults to **600 s**, clamped to **10–3600 s**.
-- **Service mode** (long press OK): if anything tries to open a valve (e.g. from HA), the controller **immediately closes all** valves.
-- **Allow multiple valves** (HA switch): when turned off with more than one valve ON, **the lowest-numbered open valve stays open** and the rest close. The same rule applies if HA tries to open multiple valves while multi-valve mode is off.
-- **Boot**: `safe_boot` closes valves **without** sound. Full alarm (`beep_error`) runs on intentional **Emergency STOP** and other scripts that call it.
-
-The **“H2Oh-no diagnostics”** text sensor (about every 5 s) prints valve mask, service flag, multi-valve flag, and panel selection index — handy when debugging from HA.
 
 ## Hardware pinout (GPIO from `src/h2oh_no.yaml`)
 
