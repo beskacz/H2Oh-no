@@ -2,7 +2,7 @@
 
 **ESPHome** firmware for an irrigation controller built around **BK7231N** (e.g. Tuya CBU module / `generic-bk7231n-qfn32-tuya`). Device name in config: **h2oh_no**, friendly name: **H2Oh-no**.
 
-Firmware sources live under **`src/`** (YAML + custom component); repo root keeps docs, git metadata, and flash backups.
+Firmware sources live under **`src/`** (YAML + custom component); repo root keeps **secrets** (`secrets.yaml`), docs, git metadata, and flash backups.
 
 ## What it does
 
@@ -20,16 +20,20 @@ Firmware sources live under **`src/`** (YAML + custom component); repo root keep
 |------|----------------|
 | `src/h2oh_no.yaml` | Main ESPHome configuration |
 | `src/components/h2oh_no_controller/` | External component: `__init__.py`, `h2oh_no_controller.h/.cpp` |
-| `src/secrets.yaml` | Passwords and keys — **do not commit** (listed in `.gitignore`) |
-| `src/secrets.yaml.example` | Template of secret names to copy |
+| `src/secrets.yaml` | Thin stub — `!include` of repo-root secrets (committed; no real keys here) |
+| `secrets.yaml` | Your real passwords / keys — **do not commit** (`.gitignore`) |
+| `secrets.yaml.example` | Template of secret names at repo root |
 
 ## Secrets
 
+ESPHome resolves `!secret` using `secrets.yaml` **next to** `src/h2oh_no.yaml`. This repo keeps that file as a one-liner that pulls in **`../secrets.yaml`** at the repo root (same pattern as [ESPHome FAQ](https://esphome.io/guides/faq.html)).
+
 ```bash
-cp src/secrets.yaml.example src/secrets.yaml
+cp secrets.yaml.example secrets.yaml
+# edit secrets.yaml at repo root
 ```
 
-Fill in `src/secrets.yaml` with your network credentials and keys. Without it, `esphome compile` will fail because `h2oh_no.yaml` uses `!secret`.
+Without root `secrets.yaml`, compile fails because `h2oh_no.yaml` uses `!secret`.
 
 ## Build and flash
 
