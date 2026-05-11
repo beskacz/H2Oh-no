@@ -14,9 +14,12 @@ Firmware sources live under **`src/`** (YAML + custom component); repo root keep
 
 ### Photos
 
-![Smart Life / Tuya Wi‑Fi 8-zone irrigation controller — product overview](docs/images/controller-product-overview.png)
-
-![Front panel — status icons, zones 1–8, five-button pad (directions + center OK)](docs/images/controller-front-panel.png)
+<table>
+<tr>
+<td align="center" valign="top" width="50%"><img src="docs/images/controller-product-overview.png" alt="Smart Life / Tuya Wi‑Fi 8-zone irrigation controller — product overview" width="100%"/></td>
+<td align="center" valign="top" width="50%"><img src="docs/images/controller-product-overview-2.png" alt="Vendor infographic — 2.4 GHz Wi‑Fi, Bluetooth, add device flow, panel photos" width="100%"/></td>
+</tr>
+</table>
 
 The same supplier range includes **4 / 6 / 16** zone models — **different PCBs**. This firmware is **only** aligned with the **8‑zone** unit unless you re‑verify GPIO.
 
@@ -71,12 +74,6 @@ The **“H2Oh-no diagnostics”** text sensor refreshes about every **5 seconds*
 ## Secrets
 
 **Your passwords and keys belong in `secrets.yaml` at the repository root.** Copy from `secrets.yaml.example` and fill in every field.
-
-**Why `src/secrets.yaml` exists:** ESPHome loads a file named exactly `secrets.yaml` from **the same directory as the config file**, so alongside `src/h2oh_no.yaml` it only looks at `src/secrets.yaml`. That file is **not** where you edit secrets — it’s a tiny committed stub that re-exports the root file (same idea as the [ESPHome FAQ](https://esphome.io/guides/faq.html) “include parent secrets” pattern):
-
-```yaml
-<<: !include ../secrets.yaml
-```
 
 Run these from the **repo root**:
 
