@@ -2,6 +2,8 @@
 
 **ESPHome** firmware for an irrigation controller built around **BK7231N** (e.g. Tuya CBU module / `generic-bk7231n-qfn32-tuya`). Device name in config: **h2oh_no**, friendly name: **H2Oh-no**.
 
+Firmware sources live under **`src/`** (YAML + custom component); repo root keeps docs, git metadata, and flash backups.
+
 ## What it does
 
 - Drives **8 valves** via a **74HC595** shift register (`valves_hub`).
@@ -16,26 +18,28 @@
 
 | Path | Description |
 |------|----------------|
-| `h2oh_no.yaml` | Main ESPHome configuration |
-| `components/h2oh_no_controller/` | External component: `__init__.py`, `h2oh_no_controller.h/.cpp` |
-| `secrets.yaml` | Passwords and keys — **do not commit** (listed in `.gitignore`) |
-| `secrets.yaml.example` | Template of secret names to copy |
+| `src/h2oh_no.yaml` | Main ESPHome configuration |
+| `src/components/h2oh_no_controller/` | External component: `__init__.py`, `h2oh_no_controller.h/.cpp` |
+| `src/secrets.yaml` | Passwords and keys — **do not commit** (listed in `.gitignore`) |
+| `src/secrets.yaml.example` | Template of secret names to copy |
 
 ## Secrets
 
 ```bash
-cp secrets.yaml.example secrets.yaml
+cp src/secrets.yaml.example src/secrets.yaml
 ```
 
-Fill in `secrets.yaml` with your network credentials and keys. Without it, `esphome compile` will fail because `h2oh_no.yaml` uses `!secret`.
+Fill in `src/secrets.yaml` with your network credentials and keys. Without it, `esphome compile` will fail because `h2oh_no.yaml` uses `!secret`.
 
 ## Build and flash
 
 You need Python with **ESPHome** installed (e.g. `pip install esphome`).
 
+Run commands from the **repository root** (or pass absolute paths):
+
 ```bash
-python3 -m esphome compile h2oh_no.yaml
-python3 -m esphome upload h2oh_no.yaml    # with device / network available
+python3 -m esphome compile src/h2oh_no.yaml
+python3 -m esphome upload src/h2oh_no.yaml    # with device / network available
 ```
 
 ## Behaviour (short)
@@ -47,7 +51,7 @@ python3 -m esphome upload h2oh_no.yaml    # with device / network available
 
 The **“H2Oh-no diagnostics”** text sensor (about every 5 s) prints valve mask, service flag, multi-valve flag, and panel selection index — handy when debugging from HA.
 
-## Hardware (GPIO from `h2oh_no.yaml`)
+## Hardware (GPIO from `src/h2oh_no.yaml`)
 
 - Valve 595: data **P16**, clock **P22**, latch **P20**
 - LED 595: data **P9**, clock **P15**, latch **P17** — status LEDs use **`inverted: true`** on each output so power-on zero state does not light every LED (common active-low LED wiring to the shift register).
@@ -55,8 +59,8 @@ The **“H2Oh-no diagnostics”** text sensor (about every 5 s) prints valve mas
 - Buttons: **P6** / **P7** / **P8** (pull-up, inverted)
 - Onboard **status LED** (**P28**, optional in YAML via `status_led_pin`): driven by `h2oh_no_controller` — **triple flash + pause** in **service mode**, otherwise same **error/warning** patterns as ESPHome’s stock `status_led`.
 
-Treat `h2oh_no.yaml` as the source of truth for pins and entities.
+Treat `src/h2oh_no.yaml` as the source of truth for pins and entities.
 
 ## Flash backups
 
-`.bin` dumps in the repo are **hardware backups** of raw flash, not part of the ESPHome build pipeline.
+`.bin` dumps in the repo root are **hardware backups** of raw flash, not part of the ESPHome build pipeline.
