@@ -13,6 +13,14 @@ Firmware sources live under **`src/`** (YAML + custom component); repo root keep
 | **MCU / ESPHome** | **BK7231N** (`generic-bk7231n-qfn32-tuya`) |
 | **Vendor specs (listing)** | Wi‑Fi **2.4 GHz** (802.11 b/g/n); **230 V AC** supply input; **24 V AC** output to controller and valves; enclosure about **211 × 139 × 20 mm**. |
 
+### Photos
+
+![Smart Life / Tuya Wi‑Fi 8-zone irrigation controller — product overview](docs/images/controller-product-overview.png)
+
+*Graphic from the [Digital Life listing](https://dlifesa.com/products/smart-life-tuya-wifi-8-zone-irrigation-controller-switch-w-24v-power-supply) ([CDN image](https://dlifesa.com/cdn/shop/files/1_df0c56a6-245c-430b-a8bf-2f137dcb482e.png?v=1733925064&width=1646)).*
+
+![Front panel — zone LEDs 1–8 and keypad (Up / Down / OK)](docs/images/controller-front-panel.png)
+
 The same supplier range includes **4 / 6 / 16** zone models — **different PCBs**. This firmware is **only** aligned with the **8‑zone** unit unless you re‑verify GPIO.
 
 ## What it does
@@ -29,6 +37,7 @@ The same supplier range includes **4 / 6 / 16** zone models — **different PCBs
 
 | Path | Description |
 |------|----------------|
+| `docs/images/` | Product photos used in this README |
 | `src/h2oh_no.yaml` | Main ESPHome configuration |
 | `src/components/h2oh_no_controller/` | External component: `__init__.py`, `h2oh_no_controller.h/.cpp` |
 | `src/secrets.yaml` | Thin stub — `!include` of repo-root secrets (committed; no real keys here) |
