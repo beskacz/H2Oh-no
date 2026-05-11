@@ -1,6 +1,6 @@
 # H2Oh-no — garden irrigation controller (ESPHome)
 
-**ESPHome** replacement firmware for the **Tuya / Smart Life Wi‑Fi 8‑zone irrigation controller** sold with a **24 V power supply**. The intended hardware matches listings such as [Digital Life — Smart Life Tuya WIFI 8 Zone Irrigation Controller Switch w/ 24V Power Supply](https://dlifesa.com/products/smart-life-tuya-wifi-8-zone-irrigation-controller-switch-w-24v-power-supply). Inside the enclosure you get a **BK7231N** module; this repo builds with **`bk72xx`** / **`generic-bk7231n-qfn32-tuya`**. Device name in config: **h2oh_no**, friendly name: **H2Oh-no**.
+**ESPHome** replacement firmware for the **Tuya / Smart Life Wi‑Fi 8‑zone irrigation controller** sold with a **24 V power supply**. Inside the enclosure you get a **BK7231N** module; this repo builds with **`bk72xx`** / **`generic-bk7231n-qfn32-tuya`**. Device name in config: **h2oh_no**, friendly name: **H2Oh-no**.
 
 Firmware sources live under **`src/`** (YAML + custom component); repo root keeps **secrets** (`secrets.yaml`), docs, git metadata, and flash backups.
 
@@ -9,15 +9,12 @@ Firmware sources live under **`src/`** (YAML + custom component); repo root keep
 | | |
 |---|---|
 | **Product** | Tuya / Smart Life **8‑zone** irrigation controller + **24 V** PSU bundle (panel with **Up / Down / OK**, buzzer, zone LEDs, **8** valve outputs). |
-| **Retail example** | [dlifesa.com — 8 zone + 24 V supply](https://dlifesa.com/products/smart-life-tuya-wifi-8-zone-irrigation-controller-switch-w-24v-power-supply) |
 | **MCU / ESPHome** | **BK7231N** (`generic-bk7231n-qfn32-tuya`) |
 | **Vendor specs (listing)** | Wi‑Fi **2.4 GHz** (802.11 b/g/n); **230 V AC** supply input; **24 V AC** output to controller and valves; enclosure about **211 × 139 × 20 mm**. |
 
 ### Photos
 
 ![Smart Life / Tuya Wi‑Fi 8-zone irrigation controller — product overview](docs/images/controller-product-overview.png)
-
-*Graphic from the [Digital Life listing](https://dlifesa.com/products/smart-life-tuya-wifi-8-zone-irrigation-controller-switch-w-24v-power-supply).*
 
 ![Front panel — status icons, zones 1–8, five-button pad (directions + center OK)](docs/images/controller-front-panel.png)
 
@@ -67,20 +64,28 @@ The **“H2Oh-no diagnostics”** text sensor refreshes about every **5 seconds*
 | `docs/images/` | Product photos used in this README |
 | `src/h2oh_no.yaml` | Main ESPHome configuration |
 | `src/components/h2oh_no_controller/` | External component: `__init__.py`, `h2oh_no_controller.h/.cpp` |
-| `src/secrets.yaml` | Thin stub — `!include` of repo-root secrets (committed; no real keys here) |
-| `secrets.yaml` | Your real passwords / keys — **do not commit** (`.gitignore`) |
-| `secrets.yaml.example` | Template of secret names at repo root |
+| `src/secrets.yaml` | ESPHome stub only — merges in root `secrets.yaml` (committed; **no secrets here**) |
+| `secrets.yaml` | **Your** Wi‑Fi / API / OTA keys — repo **root**, **gitignored** |
+| `secrets.yaml.example` | Copy this to `secrets.yaml` at repo root |
 
 ## Secrets
 
-ESPHome resolves `!secret` using `secrets.yaml` **next to** `src/h2oh_no.yaml`. This repo keeps that file as a one-liner that pulls in **`../secrets.yaml`** at the repo root (same pattern as [ESPHome FAQ](https://esphome.io/guides/faq.html)).
+**Your passwords and keys belong in `secrets.yaml` in the repository root** (next to `README.md`, not under `src/`). Copy from `secrets.yaml.example` and fill in every field.
+
+**Why `src/secrets.yaml` exists:** ESPHome loads a file named exactly `secrets.yaml` from **the same directory as the config file**, so alongside `src/h2oh_no.yaml` it only looks at `src/secrets.yaml`. That file is **not** where you edit secrets — it’s a tiny committed stub that re-exports the root file (same idea as the [ESPHome FAQ](https://esphome.io/guides/faq.html) “include parent secrets” pattern):
+
+```yaml
+<<: !include ../secrets.yaml
+```
+
+Run these from the **repo root**:
 
 ```bash
 cp secrets.yaml.example secrets.yaml
-# edit secrets.yaml at repo root
+# edit secrets.yaml
 ```
 
-Without root `secrets.yaml`, compile fails because `h2oh_no.yaml` uses `!secret`.
+If root `secrets.yaml` is missing or incomplete, `python3 -m esphome compile src/h2oh_no.yaml` fails on `!secret` lookups.
 
 ## Build and flash
 
