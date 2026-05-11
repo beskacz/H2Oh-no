@@ -19,7 +19,7 @@ Firmware sources live under **`src/`** (YAML + custom component); repo root keep
 
 *Graphic from the [Digital Life listing](https://dlifesa.com/products/smart-life-tuya-wifi-8-zone-irrigation-controller-switch-w-24v-power-supply) ([CDN image](https://dlifesa.com/cdn/shop/files/1_df0c56a6-245c-430b-a8bf-2f137dcb482e.png?v=1733925064&width=1646)).*
 
-![Front panel — zone LEDs 1–8 and keypad (Up / Down / OK)](docs/images/controller-front-panel.png)
+![Front panel — status icons, zones 1–8, five-button pad (directions + center OK)](docs/images/controller-front-panel.png)
 
 The same supplier range includes **4 / 6 / 16** zone models — **different PCBs**. This firmware is **only** aligned with the **8‑zone** unit unless you re‑verify GPIO.
 
