@@ -1,0 +1,565 @@
+esphome:
+  name: h2oh_no
+  friendly_name: H2Oh-no
+
+  on_boot:
+    - priority: 900
+      then:
+        - script.execute: safe_boot
+    - priority: 800
+      then:
+        - lambda: |-
+            id(allow_multiple_valves).publish_state(id(h2oh_ctrl).allow_multiple());
+
+bk72xx:
+  board: generic-bk7231n-qfn32-tuya
+
+external_components:
+  - source:
+      type: local
+      path: components
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: !secret wifi_ap_ssid
+    password: !secret wifi_ap_password
+
+captive_portal:
+
+###############################################################################
+# 74HC595
+###############################################################################
+
+sn74hc595:
+  - id: valves_hub
+    data_pin: P16
+    clock_pin: P22
+    latch_pin: P20
+    sr_count: 1
+
+  - id: leds_hub
+    data_pin: P9
+    clock_pin: P15
+    latch_pin: P17
+    sr_count: 1
+
+###############################################################################
+# BUZZER
+###############################################################################
+
+output:
+  - platform: gpio
+    pin: P14
+    id: buzzer
+
+###############################################################################
+# STATUS LEDS
+###############################################################################
+
+switch:
+  # STATUS LEDS (inverted: HW ties LED cathodes to 595; SR LOW = LED ON at power-on zeros)
+  - platform: gpio
+    id: led_1
+    internal: true
+    pin:
+      sn74hc595: leds_hub
+      number: 0
+      inverted: true
+
+  - platform: gpio
+    id: led_2
+    internal: true
+    pin:
+      sn74hc595: leds_hub
+      number: 1
+      inverted: true
+
+  - platform: gpio
+    id: led_3
+    internal: true
+    pin:
+      sn74hc595: leds_hub
+      number: 2
+      inverted: true
+
+  - platform: gpio
+    id: led_4
+    internal: true
+    pin:
+      sn74hc595: leds_hub
+      number: 3
+      inverted: true
+
+  - platform: gpio
+    id: led_5
+    internal: true
+    pin:
+      sn74hc595: leds_hub
+      number: 4
+      inverted: true
+
+  - platform: gpio
+    id: led_6
+    internal: true
+    pin:
+      sn74hc595: leds_hub
+      number: 5
+      inverted: true
+
+  - platform: gpio
+    id: led_7
+    internal: true
+    pin:
+      sn74hc595: leds_hub
+      number: 6
+      inverted: true
+
+  - platform: gpio
+    id: led_8
+    internal: true
+    pin:
+      sn74hc595: leds_hub
+      number: 7
+      inverted: true
+
+  - platform: gpio
+    id: valve_1
+    name: "Valve 1"
+    restore_mode: ALWAYS_OFF
+    pin: { sn74hc595: valves_hub, number: 0 }
+
+  - platform: gpio
+    id: valve_2
+    name: "Valve 2"
+    restore_mode: ALWAYS_OFF
+    pin: { sn74hc595: valves_hub, number: 1 }
+
+  - platform: gpio
+    id: valve_3
+    name: "Valve 3"
+    restore_mode: ALWAYS_OFF
+    pin: { sn74hc595: valves_hub, number: 2 }
+
+  - platform: gpio
+    id: valve_4
+    name: "Valve 4"
+    restore_mode: ALWAYS_OFF
+    pin: { sn74hc595: valves_hub, number: 3 }
+
+  - platform: gpio
+    id: valve_5
+    name: "Valve 5"
+    restore_mode: ALWAYS_OFF
+    pin: { sn74hc595: valves_hub, number: 4 }
+
+  - platform: gpio
+    id: valve_6
+    name: "Valve 6"
+    restore_mode: ALWAYS_OFF
+    pin: { sn74hc595: valves_hub, number: 5 }
+
+  - platform: gpio
+    id: valve_7
+    name: "Valve 7"
+    restore_mode: ALWAYS_OFF
+    pin: { sn74hc595: valves_hub, number: 6 }
+
+  - platform: gpio
+    id: valve_8
+    name: "Valve 8"
+    restore_mode: ALWAYS_OFF
+    pin: { sn74hc595: valves_hub, number: 7 }
+
+  - platform: template
+    name: "Allow multiple valves"
+    id: allow_multiple_valves
+    optimistic: true
+    restore_mode: DISABLED
+    turn_on_action:
+      - lambda: |-
+          id(h2oh_ctrl).set_allow_multiple(true);
+          id(allow_multiple_valves).publish_state(true);
+    turn_off_action:
+      - lambda: |-
+          id(h2oh_ctrl).set_allow_multiple(false);
+          id(allow_multiple_valves).publish_state(false);
+
+number:
+  - platform: template
+    name: "Valve 1 max runtime"
+    id: valve_1_max_runtime
+    min_value: 10
+    max_value: 3600
+    step: 10
+    optimistic: true
+    restore_value: true
+    initial_value: 600
+
+  - platform: template
+    name: "Valve 2 max runtime"
+    id: valve_2_max_runtime
+    min_value: 10
+    max_value: 3600
+    step: 10
+    optimistic: true
+    restore_value: true
+    initial_value: 600
+
+  - platform: template
+    name: "Valve 3 max runtime"
+    id: valve_3_max_runtime
+    min_value: 10
+    max_value: 3600
+    step: 10
+    optimistic: true
+    restore_value: true
+    initial_value: 600
+
+  - platform: template
+    name: "Valve 4 max runtime"
+    id: valve_4_max_runtime
+    min_value: 10
+    max_value: 3600
+    step: 10
+    optimistic: true
+    restore_value: true
+    initial_value: 600
+
+  - platform: template
+    name: "Valve 5 max runtime"
+    id: valve_5_max_runtime
+    min_value: 10
+    max_value: 3600
+    step: 10
+    optimistic: true
+    restore_value: true
+    initial_value: 600
+
+  - platform: template
+    name: "Valve 6 max runtime"
+    id: valve_6_max_runtime
+    min_value: 10
+    max_value: 3600
+    step: 10
+    optimistic: true
+    restore_value: true
+    initial_value: 600
+
+  - platform: template
+    name: "Valve 7 max runtime"
+    id: valve_7_max_runtime
+    min_value: 10
+    max_value: 3600
+    step: 10
+    optimistic: true
+    restore_value: true
+    initial_value: 600
+
+  - platform: template
+    name: "Valve 8 max runtime"
+    id: valve_8_max_runtime
+    min_value: 10
+    max_value: 3600
+    step: 10
+    optimistic: true
+    restore_value: true
+    initial_value: 600
+
+###############################################################################
+# VALVE CONTROLLER (C++)
+###############################################################################
+
+h2oh_no_controller:
+  id: h2oh_ctrl
+  status_led_pin: P28
+  valves:
+    - valve_1
+    - valve_2
+    - valve_3
+    - valve_4
+    - valve_5
+    - valve_6
+    - valve_7
+    - valve_8
+  leds:
+    - led_1
+    - led_2
+    - led_3
+    - led_4
+    - led_5
+    - led_6
+    - led_7
+    - led_8
+  max_runtimes:
+    - valve_1_max_runtime
+    - valve_2_max_runtime
+    - valve_3_max_runtime
+    - valve_4_max_runtime
+    - valve_5_max_runtime
+    - valve_6_max_runtime
+    - valve_7_max_runtime
+    - valve_8_max_runtime
+
+###############################################################################
+# DIAGNOSTICS (HA)
+###############################################################################
+
+text_sensor:
+  - platform: template
+    name: "H2Oh-no diagnostics"
+    id: h2oh_diag
+    update_interval: 5s
+    lambda: |-
+      char buf[80];
+      snprintf(buf, sizeof(buf), "mask=0x%02X svc=%d multi=%d sel=%d",
+               id(h2oh_ctrl).valve_mask(),
+               id(h2oh_ctrl).is_service_mode() ? 1 : 0,
+               id(h2oh_ctrl).allow_multiple() ? 1 : 0,
+               id(h2oh_ctrl).selected_valve());
+      return std::string(buf);
+
+###############################################################################
+# BUTTONS
+###############################################################################
+
+binary_sensor:
+  - platform: gpio
+    id: btn_up
+    pin:
+      number: P6
+      mode: INPUT_PULLUP
+      inverted: true
+    filters:
+      - delayed_on: 40ms
+      - delayed_off: 40ms
+
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: "return !id(h2oh_ctrl).is_service_mode();"
+            then:
+              - lambda: |-
+                  id(h2oh_ctrl).button_up();
+              - script.execute: beep_click
+              - script.execute: blink_selected
+
+  - platform: gpio
+    id: btn_down
+    pin:
+      number: P7
+      mode: INPUT_PULLUP
+      inverted: true
+    filters:
+      - delayed_on: 40ms
+      - delayed_off: 40ms
+
+    on_press:
+      then:
+        - if:
+            condition:
+              lambda: "return !id(h2oh_ctrl).is_service_mode();"
+            then:
+              - lambda: |-
+                  id(h2oh_ctrl).button_down();
+              - script.execute: beep_click
+              - script.execute: blink_selected
+
+  - platform: gpio
+    id: btn_ok
+    pin:
+      number: P8
+      mode: INPUT_PULLUP
+      inverted: true
+    filters:
+      - delayed_on: 40ms
+      - delayed_off: 40ms
+
+    on_multi_click:
+
+      # SHORT CLICK
+      - timing:
+          - ON for 50ms to 700ms
+        then:
+          - if:
+              condition:
+                lambda: "return !id(h2oh_ctrl).is_service_mode();"
+              then:
+                - script.execute: toggle_selected_valve
+
+      # HOLD ~2–4.5s, THEN RELEASE -> EMERGENCY STOP (does not clash with 5s service mode)
+      - timing:
+          - ON for 2000ms to 4500ms
+          - OFF for at least 50ms
+        then:
+          - script.execute: emergency_stop
+
+      # LONG HOLD -> SERVICE MODE
+      - timing:
+          - ON for at least 5s
+        then:
+          - lambda: |-
+              id(h2oh_ctrl).toggle_service_mode();
+          - if:
+              condition:
+                lambda: "return id(h2oh_ctrl).is_service_mode();"
+              then:
+                - script.execute: service_mode_enter
+              else:
+                - script.execute: service_mode_exit
+
+###############################################################################
+# HOME ASSISTANT BUTTONS
+###############################################################################
+
+button:
+  - platform: template
+    name: "Emergency STOP"
+    on_press:
+      - script.execute: emergency_stop
+
+###############################################################################
+# SCRIPTS
+###############################################################################
+
+script:
+
+###############################################################################
+# SAFE BOOT
+###############################################################################
+
+  - id: safe_boot
+    then:
+      - script.execute: emergency_stop_silent
+      - script.execute: refresh_leds
+
+###############################################################################
+# EMERGENCY STOP
+###############################################################################
+
+  - id: emergency_stop_silent
+    then:
+      - lambda: |-
+          id(h2oh_ctrl).emergency_stop();
+
+  - id: emergency_stop
+    then:
+      - script.execute: emergency_stop_silent
+      - script.execute: beep_error
+
+###############################################################################
+# REFRESH LEDS
+###############################################################################
+
+  - id: refresh_leds
+    then:
+      - lambda: |-
+          id(h2oh_ctrl).refresh_leds();
+
+###############################################################################
+# BLINK SELECTED
+###############################################################################
+
+  - id: blink_selected
+    mode: restart
+    then:
+      - lambda: |-
+          id(h2oh_ctrl).blink_selection_indicator();
+
+###############################################################################
+# TOGGLE VALVE
+###############################################################################
+
+  - id: toggle_selected_valve
+    then:
+      - lambda: |-
+          id(h2oh_ctrl).toggle_selected();
+      - script.execute: beep_ok
+
+###############################################################################
+# SERVICE MODE
+###############################################################################
+
+  - id: service_mode_enter
+    then:
+      - script.execute: emergency_stop
+
+      - repeat:
+          count: 2
+          then:
+            - output.turn_on: buzzer
+            - delay: 120ms
+            - output.turn_off: buzzer
+            - delay: 120ms
+
+      - repeat:
+          count: 2
+          then:
+            - switch.turn_on: led_1
+            - switch.turn_on: led_2
+            - switch.turn_on: led_3
+            - switch.turn_on: led_4
+            - switch.turn_on: led_5
+            - switch.turn_on: led_6
+            - switch.turn_on: led_7
+            - switch.turn_on: led_8
+            - delay: 200ms
+            - script.execute: refresh_leds
+            - delay: 200ms
+
+  - id: service_mode_exit
+    then:
+      - script.execute: beep_boot
+      - script.execute: refresh_leds
+
+###############################################################################
+# BEEPS
+###############################################################################
+
+  - id: beep_click
+    then:
+      - output.turn_on: buzzer
+      - delay: 35ms
+      - output.turn_off: buzzer
+
+  - id: beep_ok
+    then:
+      - repeat:
+          count: 2
+          then:
+            - output.turn_on: buzzer
+            - delay: 60ms
+            - output.turn_off: buzzer
+            - delay: 60ms
+
+  - id: beep_error
+    then:
+      - repeat:
+          count: 3
+          then:
+            - output.turn_on: buzzer
+            - delay: 120ms
+            - output.turn_off: buzzer
+            - delay: 120ms
+
+  - id: beep_boot
+    then:
+      - output.turn_on: buzzer
+      - delay: 120ms
+      - output.turn_off: buzzer
