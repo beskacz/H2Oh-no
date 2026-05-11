@@ -70,7 +70,7 @@ The **“H2Oh-no diagnostics”** text sensor refreshes about every **5 seconds*
 
 ## Secrets
 
-**Your passwords and keys belong in `secrets.yaml` in the repository root** (next to `README.md`, not under `src/`). Copy from `secrets.yaml.example` and fill in every field.
+**Your passwords and keys belong in `secrets.yaml` at the repository root.** Copy from `secrets.yaml.example` and fill in every field.
 
 **Why `src/secrets.yaml` exists:** ESPHome loads a file named exactly `secrets.yaml` from **the same directory as the config file**, so alongside `src/h2oh_no.yaml` it only looks at `src/secrets.yaml`. That file is **not** where you edit secrets — it’s a tiny committed stub that re-exports the root file (same idea as the [ESPHome FAQ](https://esphome.io/guides/faq.html) “include parent secrets” pattern):
 
