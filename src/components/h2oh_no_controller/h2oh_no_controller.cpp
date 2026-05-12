@@ -1,5 +1,4 @@
 #include "h2oh_no_controller.h"
-#include <cmath>
 #include "esphome/core/application.h"
 #include "esphome/core/log.h"
 
@@ -39,11 +38,6 @@ void H2OhNoController::set_led(uint8_t index, switch_::Switch *sw) {
   if (index < 8)
     this->leds_[index] = sw;
 }
-void H2OhNoController::set_max_runtime(uint8_t index, number::Number *n) {
-  if (index < 8)
-    this->max_runtimes_[index] = n;
-}
-
 void H2OhNoController::setup() {
   this->pref_allow_multiple_ = global_preferences->make_preference<bool>(PREF_ALLOW_MULTI_HASH);
   if (!this->pref_allow_multiple_.load(&this->allow_multiple_)) {
@@ -58,7 +52,7 @@ void H2OhNoController::setup() {
 
 void H2OhNoController::dump_config() {
   ESP_LOGCONFIG(TAG, "H2Oh-no valve controller");
-  ESP_LOGCONFIG(TAG, "  Max runtime watchdog: per valve (independent timers)");
+  ESP_LOGCONFIG(TAG, "  Valve watchdog: safety fuse per valve (covers stuck-on / panel use; sprinkler sets normal duration)");
   ESP_LOGCONFIG(TAG, "  Allow multiple valves: %s", this->allow_multiple_ ? "YES" : "NO");
   ESP_LOGCONFIG(TAG, "  Valve mask at boot: 0x%02X", this->valve_mask_);
   ESP_LOGCONFIG(TAG, "  Selection idle timeout: %u s (exit selection; next Up/Down picks valve 1 / 8)",
@@ -132,17 +126,12 @@ void H2OhNoController::sync_watchdog_timers_(uint8_t prev_mask, uint8_t new_mask
 }
 
 uint32_t H2OhNoController::valve_max_runtime_ms_(uint8_t index) {
-  if (index >= 8 || this->max_runtimes_[index] == nullptr)
-    return 600000;
-  float sec_f = this->max_runtimes_[index]->state;
-  if (std::isnan(sec_f))
-    return 600000;
-  int sec = (int) sec_f;
-  if (sec < 10)
-    sec = 10;
-  if (sec > 3600)
-    sec = 3600;
-  return (uint32_t) sec * 1000;
+  if (index >= 8)
+    return 0;
+  // Long fuse only: normal zone timing comes from ESPHome `sprinkler`. This prevents a stuck valve
+  // if software glitches; keep above any realistic `run_duration_number` * multiplier.
+  static constexpr uint32_t kMaxMs = 90000 * 1000u;  // 25 hours
+  return kMaxMs;
 }
 
 void H2OhNoController::watchdog_close_valve_(uint8_t index) {
@@ -151,7 +140,7 @@ void H2OhNoController::watchdog_close_valve_(uint8_t index) {
   uint8_t bit = (uint8_t)(1 << index);
   if ((this->valve_mask_ & bit) == 0)
     return;
-  ESP_LOGW(TAG, "Watchdog closed valve %u (max runtime)", (unsigned) (index + 1));
+  ESP_LOGW(TAG, "Watchdog closed valve %u (safety fuse)", (unsigned) (index + 1));
   uint8_t prev = this->valve_mask_;
   this->valve_mask_ &= (uint8_t)~bit;
   this->sync_watchdog_timers_(prev, this->valve_mask_);

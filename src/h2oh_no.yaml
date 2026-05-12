@@ -140,49 +140,49 @@ switch:
 
   - platform: gpio
     id: valve_1
-    name: "Valve 1"
+    internal: true
     restore_mode: ALWAYS_OFF
     pin: { sn74hc595: valves_hub, number: 0 }
 
   - platform: gpio
     id: valve_2
-    name: "Valve 2"
+    internal: true
     restore_mode: ALWAYS_OFF
     pin: { sn74hc595: valves_hub, number: 1 }
 
   - platform: gpio
     id: valve_3
-    name: "Valve 3"
+    internal: true
     restore_mode: ALWAYS_OFF
     pin: { sn74hc595: valves_hub, number: 2 }
 
   - platform: gpio
     id: valve_4
-    name: "Valve 4"
+    internal: true
     restore_mode: ALWAYS_OFF
     pin: { sn74hc595: valves_hub, number: 3 }
 
   - platform: gpio
     id: valve_5
-    name: "Valve 5"
+    internal: true
     restore_mode: ALWAYS_OFF
     pin: { sn74hc595: valves_hub, number: 4 }
 
   - platform: gpio
     id: valve_6
-    name: "Valve 6"
+    internal: true
     restore_mode: ALWAYS_OFF
     pin: { sn74hc595: valves_hub, number: 5 }
 
   - platform: gpio
     id: valve_7
-    name: "Valve 7"
+    internal: true
     restore_mode: ALWAYS_OFF
     pin: { sn74hc595: valves_hub, number: 6 }
 
   - platform: gpio
     id: valve_8
-    name: "Valve 8"
+    internal: true
     restore_mode: ALWAYS_OFF
     pin: { sn74hc595: valves_hub, number: 7 }
 
@@ -200,86 +200,98 @@ switch:
           id(h2oh_ctrl).set_allow_multiple(false);
           id(allow_multiple_valves).publish_state(false);
 
-number:
-  - platform: template
-    name: "Valve 1 max runtime"
-    id: valve_1_max_runtime
-    min_value: 10
-    max_value: 3600
-    step: 10
-    optimistic: true
-    restore_value: true
-    initial_value: 600
+###############################################################################
+# SPRINKLER (zone timing + cycles; drives internal valve_* switches)
+###############################################################################
 
-  - platform: template
-    name: "Valve 2 max runtime"
-    id: valve_2_max_runtime
-    min_value: 10
-    max_value: 3600
-    step: 10
-    optimistic: true
-    restore_value: true
-    initial_value: 600
-
-  - platform: template
-    name: "Valve 3 max runtime"
-    id: valve_3_max_runtime
-    min_value: 10
-    max_value: 3600
-    step: 10
-    optimistic: true
-    restore_value: true
-    initial_value: 600
-
-  - platform: template
-    name: "Valve 4 max runtime"
-    id: valve_4_max_runtime
-    min_value: 10
-    max_value: 3600
-    step: 10
-    optimistic: true
-    restore_value: true
-    initial_value: 600
-
-  - platform: template
-    name: "Valve 5 max runtime"
-    id: valve_5_max_runtime
-    min_value: 10
-    max_value: 3600
-    step: 10
-    optimistic: true
-    restore_value: true
-    initial_value: 600
-
-  - platform: template
-    name: "Valve 6 max runtime"
-    id: valve_6_max_runtime
-    min_value: 10
-    max_value: 3600
-    step: 10
-    optimistic: true
-    restore_value: true
-    initial_value: 600
-
-  - platform: template
-    name: "Valve 7 max runtime"
-    id: valve_7_max_runtime
-    min_value: 10
-    max_value: 3600
-    step: 10
-    optimistic: true
-    restore_value: true
-    initial_value: 600
-
-  - platform: template
-    name: "Valve 8 max runtime"
-    id: valve_8_max_runtime
-    min_value: 10
-    max_value: 3600
-    step: 10
-    optimistic: true
-    restore_value: true
-    initial_value: 600
+sprinkler:
+  - id: h2oh_sprinkler
+    main_switch: "H2Oh-no sprinklers"
+    auto_advance_switch: "H2Oh-no auto advance"
+    reverse_switch: "H2Oh-no reverse"
+    multiplier_number: "H2Oh-no duration multiplier"
+    repeat_number: "H2Oh-no cycle repeat"
+    valves:
+      - valve_switch: "H2Oh-no zone 1"
+        enable_switch: "H2Oh-no enable zone 1"
+        run_duration_number:
+          id: z1_run_duration
+          name: "H2Oh-no zone 1 run time"
+          min_value: 10
+          max_value: 3600
+          step: 10
+          initial_value: 600
+        valve_switch_id: valve_1
+      - valve_switch: "H2Oh-no zone 2"
+        enable_switch: "H2Oh-no enable zone 2"
+        run_duration_number:
+          id: z2_run_duration
+          name: "H2Oh-no zone 2 run time"
+          min_value: 10
+          max_value: 3600
+          step: 10
+          initial_value: 600
+        valve_switch_id: valve_2
+      - valve_switch: "H2Oh-no zone 3"
+        enable_switch: "H2Oh-no enable zone 3"
+        run_duration_number:
+          id: z3_run_duration
+          name: "H2Oh-no zone 3 run time"
+          min_value: 10
+          max_value: 3600
+          step: 10
+          initial_value: 600
+        valve_switch_id: valve_3
+      - valve_switch: "H2Oh-no zone 4"
+        enable_switch: "H2Oh-no enable zone 4"
+        run_duration_number:
+          id: z4_run_duration
+          name: "H2Oh-no zone 4 run time"
+          min_value: 10
+          max_value: 3600
+          step: 10
+          initial_value: 600
+        valve_switch_id: valve_4
+      - valve_switch: "H2Oh-no zone 5"
+        enable_switch: "H2Oh-no enable zone 5"
+        run_duration_number:
+          id: z5_run_duration
+          name: "H2Oh-no zone 5 run time"
+          min_value: 10
+          max_value: 3600
+          step: 10
+          initial_value: 600
+        valve_switch_id: valve_5
+      - valve_switch: "H2Oh-no zone 6"
+        enable_switch: "H2Oh-no enable zone 6"
+        run_duration_number:
+          id: z6_run_duration
+          name: "H2Oh-no zone 6 run time"
+          min_value: 10
+          max_value: 3600
+          step: 10
+          initial_value: 600
+        valve_switch_id: valve_6
+      - valve_switch: "H2Oh-no zone 7"
+        enable_switch: "H2Oh-no enable zone 7"
+        run_duration_number:
+          id: z7_run_duration
+          name: "H2Oh-no zone 7 run time"
+          min_value: 10
+          max_value: 3600
+          step: 10
+          initial_value: 600
+        valve_switch_id: valve_7
+      - valve_switch: "H2Oh-no zone 8"
+        enable_switch: "H2Oh-no enable zone 8"
+        run_duration_number:
+          id: z8_run_duration
+          name: "H2Oh-no zone 8 run time"
+          min_value: 10
+          max_value: 3600
+          step: 10
+          initial_value: 600
+        valve_switch_id: valve_8
 
 ###############################################################################
 # VALVE CONTROLLER (C++)
@@ -306,15 +318,6 @@ h2oh_no_controller:
     - led_6
     - led_7
     - led_8
-  max_runtimes:
-    - valve_1_max_runtime
-    - valve_2_max_runtime
-    - valve_3_max_runtime
-    - valve_4_max_runtime
-    - valve_5_max_runtime
-    - valve_6_max_runtime
-    - valve_7_max_runtime
-    - valve_8_max_runtime
 
 ###############################################################################
 # DIAGNOSTICS (HA)
@@ -457,6 +460,7 @@ script:
     then:
       - lambda: |-
           id(h2oh_ctrl).emergency_stop();
+      - sprinkler.shutdown: h2oh_sprinkler
 
   - id: emergency_stop
     then:

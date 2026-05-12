@@ -6,7 +6,6 @@
 #include "esphome/core/component.h"
 #include "esphome/core/gpio.h"
 #include "esphome/core/preferences.h"
-#include "esphome/components/number/number.h"
 #include "esphome/components/switch/switch.h"
 
 namespace esphome {
@@ -24,8 +23,6 @@ class H2OhNoController : public Component {
   void set_status_led_pin(GPIOPin *pin);
   void set_valve(uint8_t index, switch_::Switch *sw);
   void set_led(uint8_t index, switch_::Switch *sw);
-  void set_max_runtime(uint8_t index, number::Number *n);
-
   void emergency_stop();
   void toggle_selected();
   void refresh_leds();
@@ -64,7 +61,6 @@ class H2OhNoController : public Component {
 
   std::array<switch_::Switch *, 8> valves_{};
   std::array<switch_::Switch *, 8> leds_{};
-  std::array<number::Number *, 8> max_runtimes_{};
 
   GPIOPin *status_led_pin_{nullptr};
 
