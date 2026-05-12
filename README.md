@@ -43,7 +43,9 @@ If you **don’t press anything for 30 seconds**, the panel **forgets** which zo
 
 ### In Home Assistant
 
-You get **a switch per zone**, **how long each zone may run** before it turns off by itself, a toggle for **one zone only vs several at once**, an **Emergency STOP** control, and optional **diagnostics** text if you want to watch live state.
+Zones are exposed through ESPHome’s **[sprinkler](https://esphome.io/components/sprinkler/)** controller (not raw GPIO valve switches): **main run**, **auto-advance**, **reverse**, **duration multiplier**, **cycle repeat**, **per-zone run time** (seconds), **per-zone enable** (skip in full programs), and **zone switches** for single-zone runs. There is also **Allow multiple valves**, **Emergency STOP**, and optional **diagnostics** text for live state.
+
+The physical valve outputs stay **internal** to the firmware so timing and sequencing stay consistent — control watering through the sprinkler entities (or the front panel).
 
 ### Wi‑Fi problems
 
@@ -53,9 +55,10 @@ If home Wi‑Fi fails, ESPHome can open a **fallback hotspot** and **captive por
 
 These rules sit behind the scenes; you mostly notice them as “zone turned off by itself” or “only one zone stayed on”.
 
-- **Per-zone timer:** Each open zone uses its **Valve N max runtime** from Home Assistant. When time is up, **only that zone** turns off. You can usually set **about 10 seconds up to one hour** per zone from HA unless defaults were changed in YAML.
+- **Per-zone timing:** Normal **run length** comes from the sprinkler **per-zone run time** number in Home Assistant (default range about **10 s–1 h** in YAML). **Multiplier** and **repeat** behave [as in ESPHome’s docs](https://esphome.io/components/sprinkler/). The custom `h2oh_no_controller` still arms a **long safety watchdog** per open valve so a stuck-on fault cannot run forever; it does **not** replace the sprinkler timer for everyday watering.
 - **Service mode:** Any attempt to open a valve (panel or HA) is **undone immediately** — all valves stay closed.
 - **Allow multiple valves** (HA): When **off**, only **one** zone may run; if several were on, **the lowest-number zone stays** and the others close.
+- **Emergency STOP** also tells the sprinkler controller to **shut down**, so HA and the device stay aligned after an e-stop.
 - **Power-on:** Valves start **closed**; **no** startup beep. Intentional **Emergency STOP** still uses the **alarm** beeps.
 
 The **“H2Oh-no diagnostics”** text sensor refreshes about every **5 seconds** with a short status line (which zones are on, service mode, multi-zone setting, panel selection) — useful when debugging from HA.
@@ -65,7 +68,7 @@ The **“H2Oh-no diagnostics”** text sensor refreshes about every **5 seconds*
 | Path | Description |
 |------|----------------|
 | `docs/images/` | Product photos used in this README |
-| `src/h2oh_no.yaml` | Main ESPHome configuration |
+| `src/h2oh_no.yaml` | Main ESPHome configuration (includes **`sprinkler`** for HA; **`h2oh_no_controller`** for panel, LEDs, watchdog) |
 | `src/components/h2oh_no_controller/` | External component: `__init__.py`, `h2oh_no_controller.h/.cpp` |
 | `src/secrets.yaml` | ESPHome stub only — merges in root `secrets.yaml` (committed; **no secrets here**) |
 | `secrets.yaml` | **Your** Wi‑Fi / API / OTA keys — repo **root**, **gitignored** |
