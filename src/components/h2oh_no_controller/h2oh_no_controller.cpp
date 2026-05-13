@@ -19,7 +19,6 @@ static bool status_led_service_pattern_on_(uint32_t ms_mod_cycle) {
   return (ms_mod_cycle % unit) < STATUS_LED_SVC_ON_MS;
 }
 
-static constexpr uint32_t PREF_ALLOW_MULTI_HASH = 3486519287UL;
 /// No panel button activity resets manual selection to valve 1 (index 0).
 static constexpr uint32_t SELECTION_IDLE_MS = 30000;
 /// Pulses when moving selection: inverted phase vs resting state, then restore (×3).
@@ -39,10 +38,6 @@ void H2OhNoController::set_led(uint8_t index, switch_::Switch *sw) {
     this->leds_[index] = sw;
 }
 void H2OhNoController::setup() {
-  this->pref_allow_multiple_ = global_preferences->make_preference<bool>(PREF_ALLOW_MULTI_HASH);
-  if (!this->pref_allow_multiple_.load(&this->allow_multiple_)) {
-    this->allow_multiple_ = true;
-  }
   if (this->status_led_pin_ != nullptr) {
     this->status_led_pin_->setup();
     this->status_led_pin_->digital_write(false);
@@ -53,7 +48,6 @@ void H2OhNoController::setup() {
 void H2OhNoController::dump_config() {
   ESP_LOGCONFIG(TAG, "H2Oh-no valve controller");
   ESP_LOGCONFIG(TAG, "  Valve watchdog: safety fuse per valve (covers stuck-on / panel use; sprinkler sets normal duration)");
-  ESP_LOGCONFIG(TAG, "  Allow multiple valves: %s", this->allow_multiple_ ? "YES" : "NO");
   ESP_LOGCONFIG(TAG, "  Valve mask at boot: 0x%02X", this->valve_mask_);
   ESP_LOGCONFIG(TAG, "  Selection idle timeout: %u s (exit selection; next Up/Down picks valve 1 / 8)",
                 (unsigned) (SELECTION_IDLE_MS / 1000));
@@ -92,15 +86,6 @@ void H2OhNoController::install_valve_callbacks_() {
       continue;
     v->add_on_state_callback([this](bool) { this->on_valve_state_change_(); });
   }
-}
-
-uint8_t H2OhNoController::lowest_set_bit_mask_(uint8_t m) {
-  for (int i = 0; i < 8; i++) {
-    uint8_t bit = (uint8_t)(1 << i);
-    if ((m & bit) != 0)
-      return bit;
-  }
-  return 0;
 }
 
 void H2OhNoController::cancel_all_valve_watchdogs_() {
@@ -161,24 +146,6 @@ void H2OhNoController::on_valve_state_change_() {
     this->apply_mask_to_valves_();
     this->apply_mask_to_leds_();
     return;
-  }
-
-  if (!this->allow_multiple_) {
-    uint8_t m = this->valve_mask_;
-    int cnt = 0;
-    for (int i = 0; i < 8; i++) {
-      if ((m & (uint8_t)(1 << i)) != 0)
-        cnt++;
-    }
-    if (cnt > 1) {
-      uint8_t keep = lowest_set_bit_mask_(m);
-      ESP_LOGD(TAG, "Single-valve mode: trimming mask 0x%02X -> 0x%02X", m, keep);
-      this->valve_mask_ = keep;
-      this->sync_watchdog_timers_(m, this->valve_mask_);
-      this->apply_mask_to_valves_();
-      this->apply_mask_to_leds_();
-      return;
-    }
   }
 
   this->sync_watchdog_timers_(prev, this->valve_mask_);
@@ -253,9 +220,6 @@ void H2OhNoController::toggle_selected() {
   if (active) {
     this->valve_mask_ &= (uint8_t) ~(1 << s);
   } else {
-    if (!this->allow_multiple_) {
-      this->valve_mask_ = 0;
-    }
     this->valve_mask_ |= (uint8_t)(1 << s);
   }
 
@@ -334,34 +298,6 @@ void H2OhNoController::button_down() {
 void H2OhNoController::toggle_service_mode() {
   this->arm_selection_idle_timeout_();
   this->service_mode_ = !this->service_mode_;
-}
-
-void H2OhNoController::save_allow_multiple_pref_() {
-  this->pref_allow_multiple_.save(&this->allow_multiple_);
-}
-
-void H2OhNoController::set_allow_multiple(bool allow) {
-  this->allow_multiple_ = allow;
-  this->save_allow_multiple_pref_();
-
-  if (!allow) {
-    this->sync_mask_from_valves_();
-    uint8_t m = this->valve_mask_;
-    int cnt = 0;
-    for (int i = 0; i < 8; i++) {
-      if ((m & (uint8_t)(1 << i)) != 0)
-        cnt++;
-    }
-    if (cnt > 1) {
-      uint8_t prev = m;
-      uint8_t keep = lowest_set_bit_mask_(m);
-      this->valve_mask_ = keep;
-      ESP_LOGI(TAG, "Allow-multiple OFF: keeping lowest active valve (mask 0x%02X)", keep);
-      this->sync_watchdog_timers_(prev, this->valve_mask_);
-      this->apply_mask_to_valves_();
-      this->apply_mask_to_leds_();
-    }
-  }
 }
 
 }  // namespace h2oh_no_controller

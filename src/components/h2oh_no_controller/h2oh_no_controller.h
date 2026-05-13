@@ -5,7 +5,6 @@
 
 #include "esphome/core/component.h"
 #include "esphome/core/gpio.h"
-#include "esphome/core/preferences.h"
 #include "esphome/components/switch/switch.h"
 
 namespace esphome {
@@ -37,16 +36,12 @@ class H2OhNoController : public Component {
   uint8_t valve_mask() const { return this->valve_mask_; }
   int selected_valve() const { return this->selected_; }
 
-  bool allow_multiple() const { return this->allow_multiple_; }
-  void set_allow_multiple(bool allow);
-
  protected:
   void apply_mask_to_valves_();
   void sync_mask_from_valves_();
   void apply_mask_to_leds_();
   void install_valve_callbacks_();
   void on_valve_state_change_();
-  void save_allow_multiple_pref_();
 
   void cancel_all_valve_watchdogs_();
   void sync_watchdog_timers_(uint8_t prev_mask, uint8_t new_mask);
@@ -57,8 +52,6 @@ class H2OhNoController : public Component {
 
   void selection_blink_run_step_();
 
-  static uint8_t lowest_set_bit_mask_(uint8_t m);
-
   std::array<switch_::Switch *, 8> valves_{};
   std::array<switch_::Switch *, 8> leds_{};
 
@@ -67,9 +60,7 @@ class H2OhNoController : public Component {
   uint8_t valve_mask_{0};
   int selected_{0};
   bool service_mode_{false};
-  bool allow_multiple_{true};
 
-  ESPPreferenceObject pref_allow_multiple_;
   bool valve_callbacks_installed_{false};
   bool updating_valves_{false};
 

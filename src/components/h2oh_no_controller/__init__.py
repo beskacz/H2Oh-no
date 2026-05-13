@@ -5,7 +5,6 @@ from esphome.components import switch
 from esphome.const import CONF_ID
 
 AUTO_LOAD = ["switch"]
-DEPENDENCIES = ["preferences"]
 
 h2oh_no_controller_ns = cg.esphome_ns.namespace("h2oh_no_controller")
 H2OhNoController = h2oh_no_controller_ns.class_("H2OhNoController", cg.Component)

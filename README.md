@@ -43,7 +43,7 @@ If you **don’t press anything for 30 seconds**, the panel **forgets** which zo
 
 ### In Home Assistant
 
-Zones are exposed through ESPHome’s **[sprinkler](https://esphome.io/components/sprinkler/)** controller (not raw GPIO valve switches): **main run**, **auto-advance**, **reverse**, **duration multiplier**, **cycle repeat**, **per-zone run time** (seconds), **per-zone enable** (skip in full programs), and **zone switches** for single-zone runs. There is also **Allow multiple valves**, **Emergency STOP**, and optional **diagnostics** text for live state.
+Zones are exposed through ESPHome’s **[sprinkler](https://esphome.io/components/sprinkler/)** controller (not raw GPIO valve switches): **main run**, **auto-advance**, **reverse**, **duration multiplier**, **cycle repeat**, **per-zone run time** (seconds), **per-zone enable** (skip in full programs), and **zone switches** for single-zone runs. There is also **Emergency STOP** and optional **diagnostics** text for live state. The panel can still turn **multiple zones on at once**; there is no longer a Home Assistant toggle for that.
 
 The physical valve outputs stay **internal** to the firmware so timing and sequencing stay consistent — control watering through the sprinkler entities (or the front panel).
 
@@ -57,7 +57,6 @@ These rules sit behind the scenes; you mostly notice them as “zone turned off 
 
 - **Per-zone timing:** Normal **run length** comes from the sprinkler **per-zone run time** number in Home Assistant (default range about **10 s–1 h** in YAML). **Multiplier** and **repeat** behave [as in ESPHome’s docs](https://esphome.io/components/sprinkler/). The custom `h2oh_no_controller` still arms a **long safety watchdog** per open valve so a stuck-on fault cannot run forever; it does **not** replace the sprinkler timer for everyday watering.
 - **Service mode:** Any attempt to open a valve (panel or HA) is **undone immediately** — all valves stay closed.
-- **Allow multiple valves** (HA): When **off**, only **one** zone may run; if several were on, **the lowest-number zone stays** and the others close.
 - **Emergency STOP** also tells the sprinkler controller to **shut down**, so HA and the device stay aligned after an e-stop.
 - **Power-on:** Valves start **closed**; **no** startup beep. Intentional **Emergency STOP** still uses the **alarm** beeps.
 

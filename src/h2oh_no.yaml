@@ -6,10 +6,6 @@ esphome:
     - priority: 900
       then:
         - script.execute: safe_boot
-    - priority: 800
-      then:
-        - lambda: |-
-            id(allow_multiple_valves).publish_state(id(h2oh_ctrl).allow_multiple());
 
 bk72xx:
   board: generic-bk7231n-qfn32-tuya
@@ -186,20 +182,6 @@ switch:
     restore_mode: ALWAYS_OFF
     pin: { sn74hc595: valves_hub, number: 7 }
 
-  - platform: template
-    name: "Allow multiple valves"
-    id: allow_multiple_valves
-    optimistic: true
-    restore_mode: DISABLED
-    turn_on_action:
-      - lambda: |-
-          id(h2oh_ctrl).set_allow_multiple(true);
-          id(allow_multiple_valves).publish_state(true);
-    turn_off_action:
-      - lambda: |-
-          id(h2oh_ctrl).set_allow_multiple(false);
-          id(allow_multiple_valves).publish_state(false);
-
 ###############################################################################
 # SPRINKLER (zone timing + cycles; drives internal valve_* switches)
 ###############################################################################
@@ -330,10 +312,9 @@ text_sensor:
     update_interval: 5s
     lambda: |-
       char buf[80];
-      snprintf(buf, sizeof(buf), "mask=0x%02X svc=%d multi=%d sel=%d",
+      snprintf(buf, sizeof(buf), "mask=0x%02X svc=%d sel=%d",
                id(h2oh_ctrl).valve_mask(),
                id(h2oh_ctrl).is_service_mode() ? 1 : 0,
-               id(h2oh_ctrl).allow_multiple() ? 1 : 0,
                id(h2oh_ctrl).selected_valve());
       return std::string(buf);
 
